@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 import tree_sitter_python as tspython
 from tree_sitter import Language, Parser
+from helper import collect_file_names
 
 PYTHON_LANGUAGE = Language(tspython.language())
 # tspython.language() returns a pointer to the compiled C def'n for python
@@ -64,9 +65,34 @@ def get_changed_files() -> List[Path]:
         return changed_files
     except subprocess.CalledProcessError:
         print("[-] Not a git repository or git failed, falling back to full scan.")
-        return [p for p in Path(".").rglob("*.py") if ".git" not in p.parts and ".sgrep_db" not in p.parts]
+        return collect_file_names()
         
+def index_codebase(force_full: bool = False):
+    client = chromadb.PersistentClient(path=DB_PATH)
+    collection = client.get_or_create_collection(name="code_semantic_index")
+
+    is_empty = collection.count() == 0
+
+    if force_full or is_empty:
+        print("[*] Cold start or full re-index requested. Scanning entire codebase...")
+        target_files = collect_file_names()
+    else:
+        target_files = get_changed_files()
+        if not target_files:
+            print("[*] No file changes via git, index is up to date.")
+            return
+
+    print(f"Processing {len(target_files)} file(s)...")
+
+    for file_path in target_files:
+        if not file_path.exists():
+            continue
+
+        ast_chunk = ast_parse_chunk(file_path)
+        
+
 
 
 print(ast_parse_chunk(Path("./test.py")))
 print(get_changed_files())
+
