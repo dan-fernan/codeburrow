@@ -1,4 +1,4 @@
-
+import re
 import sys
 import subprocess
 import chromadb
@@ -6,7 +6,7 @@ import ollama
 from pathlib import Path
 from typing import List, Dict, Any
 import tree_sitter_python as tspython
-from rank_bm25 import BM250kapi
+from rank_bm25 import BM25Okapi
 from tree_sitter import Language, Parser
 from helper import collect_file_names
 
@@ -17,7 +17,7 @@ PYTHON_LANGUAGE = Language(tspython.language())
 parser = Parser(PYTHON_LANGUAGE)
 # Instantiates the engine that executes the parsing process
 
-DB_PATH = Path("./.sgreb_db")
+DB_PATH = Path("./.sgrep_db")
 EMBEDDING_MODEL = "nomic-embed-text"
 
 def ast_parse_chunk(file_path: Path):
@@ -94,8 +94,10 @@ def index_codebase(force_full: bool = False):
             continue
 
         texts = [chunk["text"] for chunk in ast_chunks]
-        response = ollama.embed(model=EMBEDDING_MODEL, input=texts)
+        embed_inputs = [f"search_document: {t}" for t in texts]
+        response = ollama.embed(model=EMBEDDING_MODEL, input=embed_inputs)
 
+        collection.delete(where={"file": str(file_path)})
         collection.upsert(
             ids = [f"{file_path}_chunk_{i}" for i in range(len(ast_chunks))],
             embeddings = response.embeddings,
@@ -120,12 +122,13 @@ def hybrid_search(query: str, top_k: int = 3):
         return
 
     # ------ BM25 (keyword) half --------
-    tokenized_corpus = [doc.lower().split() for doc in documents]
-    bm25 = BM250kapi(tokenized_corpus)
-    bm25_scores = bm25.get_scores(query.lower().split())
+    tokenized_corpus = [re.findall(r"\w+", doc.lower()) for doc in documents]
+    bm25 = BM25Okapi(tokenized_corpus)
+    tokenized_query = re.findall(r"\w+", query.lower())
+    bm25_scores = bm25.get_scores(tokenized_query)
 
     # ------ semantic (vector) half ------
-    query_embedding = ollama.embed(model=EMBEDDING_MODEL, input=query).embeddings[0]
+    query_embedding = ollama.embed(model=EMBEDDING_MODEL, input=f"search_query: {query}").embeddings[0]
     semantic_results = collection.query(query_embeddings=[query_embedding], n_results=len(ids))
 
     # ------ fuse rankings via Reciprocal Rank Fusion ---
@@ -152,24 +155,16 @@ def hybrid_search(query: str, top_k: int = 3):
         print(documents[idx].strip())
         print("-" * 40)
 
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python sgrep.py [index | search '<query>'] ")
+        sys.exit(1)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-print(ast_parse_chunk(Path("./test.py")))
-print(get_changed_files())
+    command = sys.argv[1]
+    if command == "index":
+        index_codebase()
+    elif command == "search" and len(sys.argv) > 2:
+        hybrid_search(sys.argv[2])
+    else:
+        print("Invalid command.")
 
