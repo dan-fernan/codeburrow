@@ -5,32 +5,25 @@ import chromadb
 import ollama
 from pathlib import Path
 from typing import List, Dict, Any
-import tree_sitter_python as tspython
 from rank_bm25 import BM25Okapi
-from tree_sitter import Language, Parser
 from helper import collect_file_names
-
-PYTHON_LANGUAGE = Language(tspython.language())
-# tspython.language() returns a pointer to the compiled C def'n for python
-# Language() takes that pointer and turns it into a python object, exposing it to high level methods
-
-parser = Parser(PYTHON_LANGUAGE)
-# Instantiates the engine that executes the parsing process
-
-DB_PATH = Path("./.sgrep_db")
-EMBEDDING_MODEL = "nomic-embed-text"
+from consts import PARSERS, CHUNK_NODE_TYPES, DB_PATH, EMBEDDING_MODEL
 
 def ast_parse_chunk(file_path: Path):
     if not file_path.exists():
         return []
-    
+
+    suffix = file_path.suffix
+    parser = PARSERS.get(suffix)
+
+    node_types = CHUNK_NODE_TYPES[suffix]
     code_bytes = file_path.read_bytes()
     tree = parser.parse(code_bytes)
     root_node = tree.root_node
 
     chunks = []
     for child in root_node.children:
-        if child.type in ["function_definition", "async_function_definition", "class_definition", "decorated_definition"]:
+        if child.type in node_types:
             chunk_text = code_bytes[child.start_byte:child.end_byte].decode("utf-8")
             chunks.append({
                 "text": chunk_text,
