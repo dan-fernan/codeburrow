@@ -54,7 +54,7 @@ def get_changed_files() -> List[Path]:
             capture_output=True, text=True, check=True # Captures output to stdout obj, decode stdout as str, and raises a calledprocesserror if exited with a non-zero return code
         )
         changed_files = []
-        for line in result.stdout.splitLines(): 
+        for line in result.stdout.splitlines(): 
             if not line.strip():
                 continue
             status = line[:2]
@@ -88,8 +88,28 @@ def index_codebase(force_full: bool = False):
         if not file_path.exists():
             continue
 
-        ast_chunk = ast_parse_chunk(file_path)
-        
+        ast_chunks = ast_parse_chunk(file_path)
+        if not ast_chunks:
+            continue
+
+        texts = [chunk["text"] for chunk in ast_chunks]
+        response = ollama.embed(model=EMBEDDING_MODEL, input=texts)
+
+        collection.upsert(
+            ids = [f"{file_path}_chunk_{i}" for i in range(len(ast_chunks))],
+            embeddings = response.embeddings,
+            metadatas=[{"file": str(file_path), "start_line": c["start_line"], "end_line": c["end_line"]}for c in ast_chunks],
+            documents = texts
+        )
+
+    print("[+] Indexing complete.")
+
+
+
+
+
+
+
 
 
 
