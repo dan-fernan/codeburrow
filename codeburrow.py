@@ -150,7 +150,7 @@ def hybrid_search(query: str, top_k: int = 3):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python sgrep.py [index | search '<query>'] ")
+        print("Usage: python codeburrow.py [index | search '<query>'] ")
         sys.exit(1)
 
     command = sys.argv[1]

@@ -4,7 +4,7 @@ import tree_sitter_typescript as tstypescript
 from tree_sitter import Language, Parser
 from pathlib import Path
 
-DB_PATH = Path("./.sgrep_db")
+DB_PATH = Path("./.codeburrow_db")
 EMBEDDING_MODEL = "nomic-embed-text"
 
 LANGUAGES = {
@@ -28,7 +28,7 @@ CHUNK_NODE_TYPES = {
 
 IGNORED_DIRS = {
     ".git", "venv", ".venv", "env", "node_modules", "__pycache__",
-    ".sgrep_db", "dist", "build", ".next", ".nuxt", "coverage",
+    ".codeburrow_db", "dist", "build", ".next", ".nuxt", "coverage",
     ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox",
     ".turbo", ".parcel-cache",
 }
