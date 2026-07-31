@@ -1,4 +1,13 @@
+import os
 from pathlib import Path
+from consts import IGNORED_DIRS, EXTS
 
 def collect_file_names():
-    return [Path(p) for p in Path(".").rglob("*.py") if ".git" not in p.parts and ".sgrep_db" not in p.parts and "venv" not in p.parts]
+    files = []
+    for dirpath, dirnames, filenames in os.walk("."):
+      dirnames[:] = [dir for dir in dirnames if dir not in IGNORED_DIRS]
+      for f in filenames:
+         if Path(f).suffix in EXTS:
+            files.append(Path(dirpath) / f)
+
+    return files

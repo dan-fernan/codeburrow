@@ -25,3 +25,14 @@ CHUNK_NODE_TYPES = {
     ".ts": {"function_declaration", "class_declaration", "method_definition", "lexical_declaration", "export_statement", "interface_declaration"},
     ".tsx": {"function_declaration", "class_declaration", "method_definition", "lexical_declaration", "export_statement", "interface_declaration"},
 }
+
+IGNORED_DIRS = {
+    ".git", "venv", ".venv", "env", "node_modules", "__pycache__",
+    ".sgrep_db", "dist", "build", ".next", ".nuxt", "coverage",
+    ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox",
+    ".turbo", ".parcel-cache",
+}
+
+EXTS = {
+    ".py", ".js", ".jsx", ".ts", ".tsx"
+}
