@@ -12,7 +12,7 @@ LANGUAGES = {
     ".js": Language(tsjavascript.language()),
     ".jsx": Language(tsjavascript.language()),
     ".ts": Language(tsjavascript.language()),
-    "tsx": Language(tstypescript.language_tsx()) 
+    ".tsx": Language(tstypescript.language_tsx())
 }
 
 PARSERS = {suffix: Parser(lang) for suffix, lang in LANGUAGES.items()}
