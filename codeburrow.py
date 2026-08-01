@@ -143,10 +143,8 @@ def hybrid_search(query: str, top_k: int = 3):
     for rank, doc_id in enumerate(top_ids):
         idx = ids.index(doc_id)
         metadata = metadatas[idx]
-        print(f"\n[{rank+1}] File: {metadata['file']} (Lines {metadata['start_line']}-{metadata['end_line']})")
-        print("-" * 40)
-        print(documents[idx].strip())
-        print("-" * 40)
+        signature = documents[idx].strip().splitlines()[0]
+        print(f"\n[{rank+1}] {metadata['file']}:{metadata['start_line'] + 1}  {signature}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
