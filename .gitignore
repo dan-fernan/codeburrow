@@ -1,2 +1,4 @@
 venv/
 test.py
+.codeburrow_db/
+codeburrow.egg-info/
