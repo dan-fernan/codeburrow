@@ -20,10 +20,14 @@ Hybrid semantic + keyword code search with AST-aware chunking. codeburrow indexe
 ```sh
 git clone <this-repo-url>
 cd codeburrow
-pip install -e .
+pipx install -e .
 ```
 
-This installs `codeburrow` as a command on your `PATH`. Editable install (`-e`) means future `git pull`s pick up code changes immediately with no reinstall — you only need to re-run `pip install -e .` if the project's dependencies themselves change.
+This installs `codeburrow` as a command on your `PATH`, isolated in its own virtual environment managed by [pipx](https://pipx.pypa.io/) — no manual venv activation needed, and it won't conflict with other Python projects. Editable install (`-e`) means future `git pull`s pick up code changes immediately with no reinstall — you only need to re-run `pipx install -e . --force` if the project's dependencies themselves change.
+
+Don't have pipx? `brew install pipx` (macOS) or see the [pipx install docs](https://pipx.pypa.io/stable/installation/).
+
+> Plain `pip install -e .` also works, but only inside a virtual environment you've activated (`python3 -m venv venv && source venv/bin/activate`) — on newer systems (e.g. Homebrew Python), running it against the system Python fails outright with `externally-managed-environment`, and even when it succeeds, `codeburrow` only stays on your `PATH` while that venv is active.
 
 ## Setup
 
