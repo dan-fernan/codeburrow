@@ -23,7 +23,7 @@ cd codeburrow
 pip install -e .
 ```
 
-This installs `codeburrow` as a command on your `PATH`. Editable install (`-e`) means future `git pull`s pick up code changes immediately with no reinstall — you only need to re-run `pip install -e .` if the project's dependencies themselves change.
+This installs `codeburrow` as a command on your `PATH`. Editable install (`-e`) means future `git pull`s pick up code changes immediately with no reinstall — you only need to re-run `pipx install -e .` if the project's dependencies themselves change.
 
 ## Setup
 
