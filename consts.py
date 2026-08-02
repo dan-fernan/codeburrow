@@ -6,12 +6,23 @@ from pathlib import Path
 
 DB_PATH = Path("./.codeburrow_db")
 EMBEDDING_MODEL = "nomic-embed-text"
+POSTCOMMIT_MARKER = "codeburrow-postcommit"
+
+INTERPRETER_HOOK_LINES = {
+    "sh": f"# {POSTCOMMIT_MARKER}\ncodeburrow index >/dev/null 2>&1 &\n",
+    "bash": f"# {POSTCOMMIT_MARKER}\ncodeburrow index >/dev/null 2>&1 &\n",
+    "zsh": f"# {POSTCOMMIT_MARKER}\ncodeburrow index >/dev/null 2>&1 &\n",
+    "python": f"# {POSTCOMMIT_MARKER}\nimport subprocess; subprocess.Popen([\"codeburrow\", \"index\"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n",
+    "python3": f"# {POSTCOMMIT_MARKER}\nimport subprocess; subprocess.Popen([\"codeburrow\", \"index\"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n",
+    "node": f"// {POSTCOMMIT_MARKER}\nrequire(\"child_process\").spawn(\"codeburrow\", [\"index\"], {{ stdio: \"ignore\", detached: true }}).unref();\n",
+    "ruby": f"# {POSTCOMMIT_MARKER}\nspawn(\"codeburrow index\", out: \"/dev/null\", err: \"/dev/null\")\n",
+}
 
 LANGUAGES = {
     ".py": Language(tspython.language()),
     ".js": Language(tsjavascript.language()),
     ".jsx": Language(tsjavascript.language()),
-    ".ts": Language(tsjavascript.language()),
+    ".ts": Language(tstypescript.language_typescript()),
     ".tsx": Language(tstypescript.language_tsx())
 }
 
