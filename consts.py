@@ -5,7 +5,7 @@ from tree_sitter import Language, Parser
 from pathlib import Path
 
 DB_PATH = Path("./.codeburrow_db")
-EMBEDDING_MODEL = "nomic-embed-text"
+EMBEDDING_MODEL = "voyage-code-3"
 POSTCOMMIT_MARKER = "codeburrow-postcommit"
 
 INTERPRETER_HOOK_LINES = {

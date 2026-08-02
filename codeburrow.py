@@ -2,12 +2,14 @@ import re
 import argparse
 import subprocess
 import chromadb
-import ollama
+import voyageai
 from pathlib import Path
 from typing import List, Tuple
 from rank_bm25 import BM25Okapi
 from helper import collect_file_names
 from consts import PARSERS, CHUNK_NODE_TYPES, DB_PATH, EMBEDDING_MODEL, POSTCOMMIT_MARKER, INTERPRETER_HOOK_LINES
+
+VOYAGE_CLIENT = voyageai.Client()
 
 def ast_parse_chunk(file_path: Path):
     if not file_path.exists():
@@ -94,8 +96,7 @@ def index_codebase(force_full: bool = False):
             continue
 
         texts = [chunk["text"] for chunk in ast_chunks]
-        embed_inputs = [f"search_document: {t}" for t in texts]
-        response = ollama.embed(model=EMBEDDING_MODEL, input=embed_inputs)
+        response = VOYAGE_CLIENT.embed(texts, model=EMBEDDING_MODEL, input_type="document")
 
         collection.delete(where={"file": str(file_path)})
         collection.upsert(
@@ -128,7 +129,7 @@ def hybrid_search(query: str, top_k: int = 3):
     bm25_scores = bm25.get_scores(tokenized_query)
 
     # ------ semantic (vector) half ------
-    query_embedding = ollama.embed(model=EMBEDDING_MODEL, input=f"search_query: {query}").embeddings[0]
+    query_embedding = VOYAGE_CLIENT.embed([query], model=EMBEDDING_MODEL, input_type="query").embeddings[0]
     semantic_results = collection.query(query_embeddings=[query_embedding], n_results=len(ids))
 
     # ------ fuse rankings via Reciprocal Rank Fusion ---
