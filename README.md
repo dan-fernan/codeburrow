@@ -4,10 +4,10 @@ Hybrid semantic + keyword code search with AST-aware chunking. codeburrow indexe
 
 ## Features
 
-- **Hybrid retrieval** — combines BM25 keyword scoring with Voyage AI semantic embeddings via Reciprocal Rank Fusion, so results aren't limited to exact keyword matches or purely semantic guesses.
-- **AST-aware chunking** — uses tree-sitter to parse source files into function/class-level chunks (rather than arbitrary line splits) for more coherent, accurately-scoped embeddings.
+- **Hybrid retrieval** — fuses Voyage AI semantic embeddings with subword-aware BM25 keyword scoring (so `parse_header_links` also matches "parse header links") via weighted Reciprocal Rank Fusion, and ranks chunks containing the query verbatim first — so natural-language questions, identifiers, and exact error strings all find the right code.
+- **AST-aware chunking** — uses tree-sitter to parse source files into function/class-level chunks (rather than arbitrary line splits), and recurses into classes so each method is also embedded as its own chunk, for more coherent, accurately-scoped embeddings.
 - **Multi-language support** — Python, JavaScript, JSX, TypeScript, and TSX out of the box.
-- **Git-aware incremental indexing** — after the initial index, only changed files are re-embedded on each run (via `git status`), including correct handling of renamed and deleted files, so the index never accumulates stale entries.
+- **Git-aware incremental indexing** — after the initial index, only changed files are re-embedded on each run (diffed against the last indexed commit), including correct handling of renamed and deleted files, so the index never accumulates stale entries.
 - **Self-installing git hook** — `codeburrow postcommit-install` wires up a `post-commit` hook that automatically re-indexes after every commit, detecting and safely extending whatever interpreter (shell, Python, Node, Ruby) an existing hook already uses.
 
 ## Requirements
@@ -62,8 +62,8 @@ Running `codeburrow postcommit-install` also adds `.codeburrow_db/` (the local v
 
 1. **Chunking** — `collect_file_names()` walks the repo (skipping common noise directories like `node_modules`, `.git`, `dist`, etc.) and each supported file is parsed with tree-sitter into function/class-level chunks.
 2. **Embedding** — each chunk is embedded via Voyage AI's `voyage-code-3` model (code-specialized) and stored in a local [ChromaDB](https://www.trychroma.com/) collection.
-3. **Search** — a query is scored two ways: BM25 keyword matching against chunk text, and cosine similarity against the query's embedding. Both rankings are merged via Reciprocal Rank Fusion, and the top results are printed with `file:line` and a signature preview.
-4. **Incremental updates** — after the first index, `codeburrow index` reads `git status --porcelain` and only re-embeds files that changed, correctly deleting index entries for removed/renamed files rather than leaving them stale.
+3. **Search** — a query is scored two ways: BM25 keyword matching (with `snake_case`/`camelCase` identifiers also split into sub-words) and cosine similarity against the query's embedding. The rankings are merged with weighted Reciprocal Rank Fusion (90% semantic, 10% keyword), any chunk containing the query text verbatim is moved to the top, and the top results are printed with `file:line` and a signature preview.
+4. **Incremental updates** — after the first index, `codeburrow index` diffs against the last indexed commit (plus any uncommitted changes) and only re-embeds files that changed, correctly deleting index entries for removed/renamed files rather than leaving them stale.
 
 ## Supported file types
 

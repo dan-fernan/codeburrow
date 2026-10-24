@@ -5,7 +5,11 @@ from tree_sitter import Language, Parser
 from pathlib import Path
 
 DB_PATH = Path("./.codeburrow_db")
+INDEX_STATE_PATH = DB_PATH / "index_state.json"
 EMBEDDING_MODEL = "voyage-code-3"
+RRF_K = 10
+SEMANTIC_WEIGHT = 0.9 # tuned on the retrieval benchmark: BM25 mostly helps identifier/literal queries
+BM25_WEIGHT = 0.1
 POSTCOMMIT_MARKER = "codeburrow-postcommit"
 
 INTERPRETER_HOOK_LINES = {
@@ -36,6 +40,9 @@ CHUNK_NODE_TYPES = {
     ".ts": {"function_declaration", "class_declaration", "method_definition", "lexical_declaration", "export_statement", "interface_declaration"},
     ".tsx": {"function_declaration", "class_declaration", "method_definition", "lexical_declaration", "export_statement", "interface_declaration"},
 }
+
+CLASS_NODE_TYPES = {"class_definition", "class_declaration", "abstract_class_declaration"}
+METHOD_NODE_TYPES = {"function_definition", "decorated_definition", "method_definition", "class_definition", "class_declaration"}
 
 IGNORED_DIRS = {
     ".git", "venv", ".venv", "env", "node_modules", "__pycache__",

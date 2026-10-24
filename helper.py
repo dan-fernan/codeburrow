@@ -11,3 +11,6 @@ def collect_file_names():
             files.append(Path(dirpath) / f)
 
     return files
+
+def is_indexable(path: Path):
+    return path.suffix in EXTS and not any(part in IGNORED_DIRS for part in path.parts[:-1])
